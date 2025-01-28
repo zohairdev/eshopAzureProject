@@ -32,7 +32,7 @@ jobs:
   steps:
   - task: AzureWebApp@1
     inputs:
-      azureSubscription: '$(AZURE_SERVICE_CONNECTION_NAME)'
+      azureSubscription: 'myeshop22connection'
       appType: 'webApp'
       appName: 'eshopweb22'
       package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
