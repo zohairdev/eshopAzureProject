@@ -7,47 +7,30 @@ pool:
 variables:
   buildConfiguration: 'Release'
 
-jobs:
-- job: Build
-  displayName: 'Build Job'
-  pool:
-    vmImage: 'windows-latest'
-  steps:
-  - task: UseDotNet@2
-    inputs:
-      packageType: 'sdk'
-      version: '8.x'
-      installationPath: $(Agent.ToolsDirectory)/dotnet
+steps:
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '8.x'
+    installationPath: $(Agent.ToolsDirectory)/dotnet
 
-  - script: |
-      dotnet restore
-      dotnet build --configuration $(buildConfiguration)
-      dotnet publish -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)
-    displayName: 'Restore, Build, and Publish'
+- script: |
+    dotnet restore
+    dotnet build --configuration $(buildConfiguration)
+    dotnet publish -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)
+  displayName: 'Restore, Build, and Publish'
 
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)
-      ArtifactName: drop
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: $(Build.ArtifactStagingDirectory)
+    ArtifactName: drop
 
-- job: Deploy
-  displayName: 'Deploy Job'
-  dependsOn: Build
-  pool:
-    vmImage: 'windows-latest'
-  steps:
-  - task: DownloadBuildArtifacts@0
-    inputs:
-      buildType: 'current'
-      downloadType: 'single'
-      artifactName: 'drop'
-      downloadPath: '$(System.ArtifactsDirectory)'
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: 'myeshop22connection'
+    appType: 'webApp'
+    appName: 'eshopweb22'
+    package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
 
-  - task: AzureWebApp@1
-    inputs:
-      azureSubscription: 'myeshop22connection'
-      appType: 'webApp'
-      appName: 'eshopweb22'
-      package: '$(System.ArtifactsDirectory)/drop/**/*.zip'
 
     
