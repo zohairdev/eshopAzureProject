@@ -1,4 +1,4 @@
-trigger:
+trigger: 
 - main
 
 pool:
@@ -7,27 +7,33 @@ pool:
 variables:
   buildConfiguration: 'Release'
 
-steps:
-- task: UseDotNet@2
-  inputs:
-    packageType: 'sdk'
-    version: '8.x'
-    installationPath: $(Agent.ToolsDirectory)/dotnet
+jobs:
+- job: Build
+  steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '8.x'
+      installationPath: $(Agent.ToolsDirectory)/dotnet
 
-- script: |
-    dotnet restore
-    dotnet build --configuration $(buildConfiguration)
-    dotnet publish -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)
-  displayName: 'Restore, Build, and Publish'
+  - script: |
+      dotnet restore
+      dotnet build --configuration $(buildConfiguration)
+      dotnet publish -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)
+    displayName: 'Restore, Build, and Publish'
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: $(Build.ArtifactStagingDirectory)
-    ArtifactName: drop
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)
+      ArtifactName: drop
 
-- task: AzureWebApp@1
-  inputs:
-    azureSubscription: 'myeshop22connection'
-    appType: 'webApp'
-    appName: 'eshopweb22'
-    package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
+- job: Deploy
+  dependsOn: Build
+  steps:
+  - task: AzureWebApp@1
+    inputs:
+      azureSubscription: '$(AZURE_SERVICE_CONNECTION_NAME)'
+      appType: 'webApp'
+      appName: 'eshopweb22'
+      package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
+    
