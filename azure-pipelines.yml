@@ -9,6 +9,9 @@ variables:
 
 jobs:
 - job: Build
+  displayName: 'Build Job'
+  pool:
+    vmImage: 'windows-latest'
   steps:
   - task: UseDotNet@2
     inputs:
@@ -28,12 +31,23 @@ jobs:
       ArtifactName: drop
 
 - job: Deploy
+  displayName: 'Deploy Job'
   dependsOn: Build
+  pool:
+    vmImage: 'windows-latest'
   steps:
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: 'current'
+      downloadType: 'single'
+      artifactName: 'drop'
+      downloadPath: '$(System.ArtifactsDirectory)'
+
   - task: AzureWebApp@1
     inputs:
       azureSubscription: 'myeshop22connection'
       appType: 'webApp'
       appName: 'eshopweb22'
-      package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
+      package: '$(System.ArtifactsDirectory)/drop/**/*.zip'
+
     
